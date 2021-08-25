@@ -403,7 +403,8 @@ CGFloat kDefaultScrollSnapTriggerOffset = 60;
     NSString *_direction;
     BOOL _showScrollBar;
     BOOL _pagingEnabled;
-    
+    BOOL _refreshingLock;
+
     BOOL _shouldNotifiAppearDescendantView;
     BOOL _shouldRemoveScrollerListener;
     CGPoint _scrollStartPoint;
@@ -415,10 +416,18 @@ CGFloat kDefaultScrollSnapTriggerOffset = 60;
 }
 
 WX_EXPORT_METHOD(@selector(resetLoadmore))
+WX_EXPORT_METHOD(@selector(scrollToTop))
 
 - (void)resetLoadmore
 {
     _previousLoadMoreContentHeight=0;
+}
+
+- (void)scrollToTop {
+    if ([self.view isKindOfClass:[UIScrollView class]]) {
+        UIScrollView *scroll = (UIScrollView *)self.view;
+        [scroll setContentOffset:CGPointMake(0, 0) animated:NO];
+    }
 }
 
 - (BOOL)_insertSubcomponent:(WXComponent *)subcomponent atIndex:(NSInteger)index
@@ -462,6 +471,10 @@ WX_EXPORT_METHOD(@selector(resetLoadmore))
         _lastScrollEventFiredOffset = CGPointMake(0, 0);
         _scrollDirection = attributes[@"scrollDirection"] ? [WXConvert WXScrollDirection:attributes[@"scrollDirection"]] : WXScrollDirectionVertical;
         _showScrollBar = attributes[@"showScrollbar"] ? [WXConvert BOOL:attributes[@"showScrollbar"]] : YES;
+        _refreshingLock = attributes[@"refreshingLock"] ? [WXConvert BOOL:attributes[@"refreshingLock"]] : NO;
+
+        _isChild = attributes[@"nodeType"] ? [WXConvert NSInteger:attributes[@"nodeType"]] == 1 : NO;
+        _isSuper = attributes[@"nodeType"] ? [WXConvert NSInteger:attributes[@"nodeType"]] == 2 : NO;
         
         if (attributes[@"alwaysScrollableVertical"]) {
             _alwaysScrollableVertical = [WXConvert NSString:attributes[@"alwaysScrollableVertical"]];
@@ -606,7 +619,9 @@ WX_EXPORT_METHOD(@selector(resetLoadmore))
     scrollView.showsHorizontalScrollIndicator = _showScrollBar;
     scrollView.scrollEnabled = _scrollable;
     scrollView.pagingEnabled = _pagingEnabled;
-    
+    scrollView.wx_isSuper = self.isSuper;
+    scrollView.wx_isChild = self.isChild;
+    scrollView.wx_refreshLock = _refreshingLock;
     if (scrollView.bounces != _bounces) {
         scrollView.bounces = _bounces;
     }
@@ -793,9 +808,9 @@ WX_EXPORT_METHOD(@selector(resetLoadmore))
 {
     if([self.stickyArray containsObject:sticky]) {
         [self.stickyArray removeObject:sticky];
-		WXPerformBlockOnMainThread(^{
-			[self adjustSticky];
-		});
+        WXPerformBlockOnMainThread(^{
+            [self adjustSticky];
+        });
     }
 }
 
@@ -1016,6 +1031,12 @@ WX_EXPORT_METHOD(@selector(resetLoadmore))
 
 - (void)setContentSize:(CGSize)size
 {
+    if (size.width <= 0) {
+        size = CGSizeMake(self.calculatedFrame.size.width, size.height);
+    }
+    if (size.height <= 0) {
+        size = CGSizeMake(size.width, self.calculatedFrame.size.height);
+    }
     UIScrollView *scrollView = (UIScrollView *)self.view;
     scrollView.contentSize = size;
 }
@@ -1077,6 +1098,10 @@ WX_EXPORT_METHOD(@selector(resetLoadmore))
         [_refreshComponent setIndicatorHidden:NO];
     }
     
+    if (_refreshComponent && scrollView.wx_refreshLock) {
+        _refreshComponent.scrollerView = scrollView;
+    }
+    
     _scrollStartPoint = scrollView.contentOffset;
     
     if (_scrollStartEvent || _scrollEventListener) {
@@ -1103,14 +1128,78 @@ WX_EXPORT_METHOD(@selector(resetLoadmore))
     }
 }
 
+
+- (void)mainScrollDidScroll:(UIScrollView *)scrollView {
+    CGRect rect = [scrollView.wx_subScrollView.superview
+                   convertRect:scrollView.wx_subScrollView.frame
+                   toView:[UIApplication sharedApplication].keyWindow];
+    BOOL isVisible = rect.origin.x >= 0 && rect.origin.x <= [UIScreen mainScreen].bounds.size.width - 10;
+    if (isVisible && scrollView.wx_subScrollView.contentOffset.y > [self minContentOffsetYInListScrollView:scrollView.wx_subScrollView]) {
+        scrollView.contentOffset = CGPointMake(0, [scrollView.wx_headerOffset floatValue]);
+    }
+    if (scrollView.contentOffset.y < ([scrollView.wx_headerOffset floatValue] - 0.5)) {
+        [self setListScrollViewToMinContentOffsetY:scrollView.wx_subScrollView];
+        //mainTableView的header还没有消失，让listScrollView一直为0
+//        if (self.currentList && [self.currentList respondsToSelector:@selector(listScrollViewWillResetContentOffset)]) {
+//            [self.currentList listScrollViewWillResetContentOffset];
+//        }
+//        [self setListScrollViewToMinContentOffsetY:scrollView];
+//        if (self.automaticallyDisplayListVerticalScrollIndicator) {
+//            scrollView.showsVerticalScrollIndicator = NO;
+//        }
+    }
+    if (scrollView.contentOffset.y > [scrollView.wx_headerOffset floatValue] &&
+        scrollView.wx_subScrollView.contentOffset.y == [self minContentOffsetYInListScrollView:scrollView.wx_subScrollView]) {
+        scrollView.contentOffset = CGPointMake(0, [scrollView.wx_headerOffset floatValue]);
+    }
+}
+
+- (void)childScrollDidScroll:(UIScrollView *)scrollView {
+    if (scrollView.wx_mainScrollView.contentOffset.y < [scrollView.wx_mainScrollView.wx_headerOffset floatValue] - 0.5) {
+        [self setListScrollViewToMinContentOffsetY:scrollView];
+        //mainTableView的header还没有消失，让listScrollView一直为0
+//        if (self.currentList && [self.currentList respondsToSelector:@selector(listScrollViewWillResetContentOffset)]) {
+//            [self.currentList listScrollViewWillResetContentOffset];
+//        }
+//        [self setListScrollViewToMinContentOffsetY:scrollView];
+//        if (self.automaticallyDisplayListVerticalScrollIndicator) {
+//            scrollView.showsVerticalScrollIndicator = NO;
+//        }
+    }else {
+        //mainTableView的header刚好消失，固定mainTableView的位置，显示listScrollView的滚动条
+        scrollView.wx_mainScrollView.contentOffset = CGPointMake(0, [scrollView.wx_mainScrollView.wx_headerOffset floatValue]);
+    }
+}
+
+- (void)setListScrollViewToMinContentOffsetY:(UIScrollView *)scrollView {
+    scrollView.contentOffset = CGPointMake(scrollView.contentOffset.x, [self minContentOffsetYInListScrollView:scrollView]);
+}
+
+- (CGFloat)minContentOffsetYInListScrollView:(UIScrollView *)scrollView {
+    if (@available(iOS 11.0, *)) {
+        return -scrollView.adjustedContentInset.top;
+    }
+    return -scrollView.contentInset.top;
+}
+
+
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
+    
+    if (scrollView.wx_isSuper) {
+        [self mainScrollDidScroll:scrollView];
+    }
+    if (scrollView.wx_isChild) {
+        [self childScrollDidScroll:scrollView];
+    }
+    
     //apply block which are registered
     WXSDKInstance *instance = self.weexInstance;
-    if ([self.ref isEqualToString:WX_SDK_ROOT_REF] &&
+    if (([self.ref isEqualToString:WX_SDK_ROOT_REF] ||
+         scrollView.wx_isSuper) &&
         [self isKindOfClass:[WXScrollerComponent class]]) {
         if (instance.onScroll) {
-            instance.onScroll(scrollView.contentOffset);
+            instance.onScroll(scrollView.contentOffset, scrollView);
         }
     }
     
@@ -1180,6 +1269,14 @@ WX_EXPORT_METHOD(@selector(resetLoadmore))
         }
     }
 }
+
+- (BOOL)scrollViewShouldScrollToTop:(UIScrollView *)scrollView {
+    if (self.weexInstance.onScrollToTop) {
+        self.weexInstance.onScrollToTop(scrollView);
+    }
+    return YES;
+}
+
 
 - (void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
 {
@@ -1445,7 +1542,7 @@ WX_EXPORT_METHOD(@selector(resetLoadmore))
 - (void)scrollToTarget:(WXScrollToTarget *)target scrollRect:(CGRect)rect
 {
     WXComponent *component = target.target;
-    if (![component isViewLoaded]) { 
+    if (![component isViewLoaded]) {
         return;
     }
     

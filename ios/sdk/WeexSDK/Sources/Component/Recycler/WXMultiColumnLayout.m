@@ -21,6 +21,7 @@
 #import "NSArray+Weex.h"
 #import "WXUtility.h"
 #import "WXAssert.h"
+#import "UIScrollView+WXExtension.h"
 
 NSString * const kCollectionSupplementaryViewKindHeader = @"WXCollectionSupplementaryViewKindHeader";
 NSString * const kMultiColumnLayoutHeader = @"WXMultiColumnLayoutHeader";
@@ -29,6 +30,7 @@ NSString * const kMultiColumnLayoutCell = @"WXMultiColumnLayoutCell";
 @interface WXMultiColumnLayoutHeaderAttributes : UICollectionViewLayoutAttributes
 
 @property (nonatomic, assign) BOOL isSticky;
+@property (nonatomic, assign) CGRect originFrame;
 
 @end
 
@@ -162,7 +164,11 @@ NSString * const kMultiColumnLayoutCell = @"WXMultiColumnLayoutCell";
             CGFloat headerHeight = [self.delegate collectionView:[self weakCollectionView]  layout:self heightForHeaderInSection:section];
             WXMultiColumnLayoutHeaderAttributes *headerAttributes = [WXMultiColumnLayoutHeaderAttributes layoutAttributesForSupplementaryViewOfKind:kCollectionSupplementaryViewKindHeader withIndexPath:[NSIndexPath indexPathForItem:0 inSection:section]];
             headerAttributes.frame = CGRectMake(insets.left, currentHeight, self.contentWidth - (insets.left + insets.right), headerHeight);
+            headerAttributes.originFrame = headerAttributes.frame;
             headerAttributes.isSticky = [self.delegate collectionView:[self weakCollectionView] layout:self isNeedStickyForHeaderInSection:section];
+            if (headerAttributes.isSticky) {
+                self.weak_collectionView.wx_headerOffset = @(headerAttributes.frame.origin.y);
+            }
             headerAttributes.zIndex = headerAttributes.isSticky ? 1 : 0;
             headersAttributes[@(section)] = headerAttributes;
             
@@ -250,17 +256,41 @@ NSString * const kMultiColumnLayoutCell = @"WXMultiColumnLayoutCell";
 - (void)_adjustStickyForHeaderAttributes:(WXMultiColumnLayoutHeaderAttributes *)header
                                    next:(WXMultiColumnLayoutHeaderAttributes *)nextHeader
 {
-    CGRect bounds = [self weakCollectionView].bounds;
-    CGFloat originY = header.frame.origin.y;
-    CGFloat maxY = nextHeader ? (nextHeader.frame.origin.y - header.frame.size.height) : (CGRectGetMaxY(bounds) - header.frame.size.height);
-    CGFloat currentY = CGRectGetMaxY(bounds) - bounds.size.height + [self weakCollectionView].contentInset.top;
+    NSInteger section = header.indexPath.section;
+    CGRect frame = header.frame;
+    BOOL isNeedChangeFrame = NO;
+    CGFloat offsetY = self.collectionView.contentOffset.y;
+    if ((offsetY + self.stickyOffset) >= header.originFrame.origin.y &&
+        offsetY < (nextHeader ? nextHeader.frame.origin.y : self.collectionView.contentSize.height)) {
+        frame.origin.y = offsetY + self.stickyOffset;
+        header.zIndex = 1000+section;
+        header.frame = frame;
+        isNeedChangeFrame = YES;
+//        [self.weak_collectionView setContentOffset:CGPointMake(0, header.originFrame.origin.y)];
+    } else {
+//        self.weak_collectionView.scrollEnabled = YES;
+    }
     
-    CGFloat resultY = MIN(MAX(currentY, originY), maxY);
-    CGPoint origin = header.frame.origin;
-    origin.y = resultY;
-    
-    header.frame = (CGRect){origin, header.frame.size};
-    header.hidden = NO;
+    if (!isNeedChangeFrame) {
+        /*
+         这里需要注意，在悬浮的情况下改变了headerAtt的frame
+         在滑出header又滑回来时,headerAtt已经被修改过，需要改回原始值
+         否则header无法正确归位
+         */
+        header.frame = header.originFrame;
+    }
+
+//    CGRect bounds = [self weakCollectionView].bounds;
+//    CGFloat originY = header.frame.origin.y;
+//    CGFloat maxY = nextHeader ? (nextHeader.frame.origin.y - header.frame.size.height) : (CGRectGetMaxY(bounds) - header.frame.size.height);
+//    CGFloat currentY = CGRectGetMaxY(bounds) - bounds.size.height + [self weakCollectionView].contentInset.top;
+//
+//    CGFloat resultY = MIN(MAX(currentY, originY), maxY);
+//    CGPoint origin = header.frame.origin;
+//    origin.y = resultY;
+//
+//    header.frame = (CGRect){origin, header.frame.size};
+//    header.hidden = NO;
 }
 
 - (UICollectionViewLayoutAttributes *)layoutAttributesForSupplementaryViewOfKind:(NSString *)elementKind atIndexPath:(NSIndexPath *)indexPath

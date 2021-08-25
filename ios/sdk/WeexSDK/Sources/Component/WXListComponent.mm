@@ -31,6 +31,7 @@
 #import "WXSDKInstance_private.h"
 #import "WXRefreshComponent.h"
 #import "WXLoadingComponent.h"
+#import "UIScrollView+WXExtension.h"
 
 @interface WXListComponent () <UITableViewDataSource, UITableViewDelegate, WXCellRenderDelegate, WXHeaderRenderDelegate>
 
@@ -169,6 +170,7 @@
     NSString *_updataType;
     
     BOOL _isUpdating;
+    BOOL _disableHeaderSticky;
     NSMutableArray<void(^)(void)> *_updates;
     NSTimeInterval _reloadInterval;
     
@@ -184,6 +186,9 @@
         _reloadInterval = attributes[@"reloadInterval"] ? [WXConvert CGFloat:attributes[@"reloadInterval"]]/1000 : 0;
         _updataType = [WXConvert NSString:attributes[@"updataType"]]?:@"insert";
         _contentAttachBottom = [WXConvert BOOL:attributes[@"contentAttachBottom"]];
+        if (attributes[@"disableHeaderSticky"]) {
+            _disableHeaderSticky = [WXConvert BOOL:attributes[@"disableHeaderSticky"]];
+        }
         [self fixFlicker];
     }
     
@@ -200,7 +205,11 @@
 
 - (UIView *)loadView
 {
-    return [[WXTableView alloc] init];
+    if (_disableHeaderSticky) {
+        return [[WXTableView alloc] initWithFrame:CGRectZero style:UITableViewStyleGrouped];
+    } else {
+        return [[WXTableView alloc] init];
+    }
 }
 
 - (void)viewDidLoad
@@ -214,7 +223,8 @@
     _tableView.delegate = self;
     _tableView.dataSource = self;
     _tableView.userInteractionEnabled = YES;
-    
+    _tableView.wx_isSuper = self.isSuper;
+    _tableView.wx_isChild = self.isChild;
     _tableView.estimatedRowHeight = 0;
     _tableView.estimatedSectionFooterHeight = 0;
     _tableView.estimatedSectionHeaderHeight = 0;
@@ -1203,7 +1213,7 @@
     dispatch_once(&onceToken, ^{
         // FIXME:(ง •̀_•́)ง┻━┻ Stupid scoll view, always reset content offset to zero by calling _adjustContentOffsetIfNecessary after insert cells.
         // So if you pull down list while list is rendering, the list will be flickering.
-        // Demo:    
+        // Demo:
         // Have to hook _adjustContentOffsetIfNecessary here.
         // Any other more elegant way?
         NSString *a = @"ntOffsetIfNe";

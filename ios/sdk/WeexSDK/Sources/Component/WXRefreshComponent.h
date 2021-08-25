@@ -27,6 +27,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface WXRefreshComponent : WXComponent
 
+@property (nonatomic, weak) UIScrollView *scrollerView;
+
 - (void)refresh;
 
 - (BOOL)displayState;

@@ -82,7 +82,7 @@ typedef NS_ENUM(NSInteger, WXImageLoaderCacheType) {
  *              finished : a Boolean value indicating whether download action has finished.
  */
 - (void)setImageViewWithURL:(UIImageView*)imageView
-                        url:(NSURL *)url
+                        url:(NSString *)url
            placeholderImage:(UIImage * _Nullable)placeholder
                     options:(NSDictionary* _Nullable)options
                    progress:(nullable void (^)(NSInteger receivedSize, NSInteger expectedSize))progressBlock

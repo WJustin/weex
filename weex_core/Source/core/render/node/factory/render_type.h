@@ -33,6 +33,7 @@ constexpr char kRenderText[] = "text";
 constexpr char kRenderHeader[] = "header";
 constexpr char kRenderFooter[] = "footer";
 constexpr char kRenderWaterfall[] = "waterfall";
+constexpr char kRenderLinkageList[] = "linkage-list";
 constexpr char kRenderAppBar[] = "appbar";
 }  // namespace WeexCore
 

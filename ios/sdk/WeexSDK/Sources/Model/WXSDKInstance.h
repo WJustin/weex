@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -69,7 +69,7 @@ typedef BOOL (^WXModuleInterceptCallback)(NSString *moduleName, NSString *method
 @property (nonatomic, weak) UIViewController *viewController;
 
 /**
- * The Native root container used to bear the view rendered by weex file. 
+ * The Native root container used to bear the view rendered by weex file.
  * The root view is controlled by WXSDKInstance, so you can only get it, but not change it.
  **/
 @property (nonatomic, strong) UIView *rootView;
@@ -229,7 +229,9 @@ typedef enum : NSUInteger {
  *
  *  @return A block that takes a CGPoint argument, which is content offset of the scroller
  **/
-@property (nonatomic, copy) void (^onScroll)(CGPoint contentOffset);
+@property (nonatomic, copy) void (^onScroll)(CGPoint contentOffset, UIScrollView *scrollView);
+
+@property (nonatomic, copy) void (^onScrollToTop)(UIScrollView *scrollerView);
 
 /**
  *  The callback of the instance
@@ -513,8 +515,8 @@ typedef enum : NSUInteger {
                  invert:(BOOL)invert
                   scene:(WXColorScene)scene;
 
-/** 
- * Deprecated 
+/**
+ * Deprecated
  */
 @property (nonatomic, strong) NSDictionary *properties DEPRECATED_MSG_ATTRIBUTE();
 @property (nonatomic, assign) NSTimeInterval networkTime DEPRECATED_MSG_ATTRIBUTE();

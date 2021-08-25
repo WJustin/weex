@@ -19,6 +19,7 @@
 
 #import <WeexSDK/WXScrollerProtocol.h>
 #import <WeexSDK/WXComponent.h>
+#import "UIScrollView+WXExtension.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -33,6 +34,11 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) NSUInteger loadmoreretry;
 
 @property (nonatomic, assign) CGSize contentSize;
+
+@property (nonatomic, assign) BOOL isSuper;
+
+@property (nonatomic, assign) BOOL isChild;
+
 
 @property (nonatomic, strong) WXScrollSnapData *snapData;
 
@@ -112,7 +118,7 @@ typedef NS_ENUM(NSUInteger, WXScrollAnimateFunction) {
 - (void)bindingScrollView:(UIScrollView *)scrollView;
 /// calc snap status;
 - (WXScrollSnapStatus)shouldTriggerSnap:(CGPoint)offset velocity:(CGPoint)velocity;
-/// 
+///
 - (CGFloat)calcScrollSnapPositionOffset;
 
 @end

@@ -23,6 +23,7 @@
 #import "WXComponent_internal.h"
 #import "WXLog.h"
 #import "WXComponent+Layout.h"
+#import "UIScrollView+WXExtension.h"
 
 @interface WXRefreshComponent()
 {
@@ -156,7 +157,12 @@
     id<WXScrollerProtocol> scrollerProtocol = self.ancestorScroller;
     if (scrollerProtocol == nil || !_initFinished)
         return;
-    
+    if (self.scrollerView.wx_refreshLock) {
+        self.scrollerView.scrollEnabled = _displayState ? NO : YES;
+        if (self.scrollerView.refreshDisplayBlock) {
+            self.scrollerView.refreshDisplayBlock(_displayState);
+        }
+    }
     if ([scrollerProtocol respondsToSelector:@selector(refreshType)] &&
         [[scrollerProtocol refreshType] isEqualToString:@"refreshForAppear"]) {
         UIEdgeInsets inset = [scrollerProtocol contentInset];

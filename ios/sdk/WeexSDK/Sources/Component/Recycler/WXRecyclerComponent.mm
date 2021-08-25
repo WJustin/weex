@@ -35,6 +35,7 @@
 #import "WXComponent+Events.h"
 #import "WXRecyclerDragController.h"
 #import "WXComponent+Layout.h"
+#import "UIScrollView+WXExtension.h"
 
 static NSString * const kCollectionCellReuseIdentifier = @"WXRecyclerCell";
 static NSString * const kCollectionHeaderReuseIdentifier = @"WXRecyclerHeader";
@@ -51,6 +52,31 @@ typedef enum : NSUInteger {
 @end
 
 @implementation WXCollectionView
+
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+    if ([gestureRecognizer.view isKindOfClass:[UIScrollView class]]) {
+        UIScrollView *scroll = (UIScrollView *)gestureRecognizer.view;
+        if ([otherGestureRecognizer.view isKindOfClass:NSClassFromString(@"WXRecycleSliderScrollView")] ||
+            [otherGestureRecognizer.view isKindOfClass:NSClassFromString(@"WXScrollerComponentView")]) {
+            return NO;
+        }
+        if (scroll.wx_isSuper) {
+            if ([otherGestureRecognizer.view isKindOfClass:[UIScrollView class]]) {
+                 UIScrollView *sub = (UIScrollView *)otherGestureRecognizer.view;
+                if (sub.wx_isChild) {
+                    sub.wx_mainScrollView = scroll;
+                    scroll.wx_subScrollView = sub;
+                    [scroll wx_addChildScroll:sub];
+                }
+            }
+            BOOL isPan = [gestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]] && [otherGestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]];
+            return isPan;
+        }
+    }
+    return NO;
+}
+
 
 - (void)dealloc
 {
@@ -119,6 +145,7 @@ typedef enum : NSUInteger {
 @property (nonatomic, strong, readonly) WXRecyclerUpdateController *updateController;
 @property (nonatomic, weak, readonly) UICollectionView *collectionView;
 @property (nonatomic, strong) WXRecyclerDragController *dragController;
+@property (nonatomic, assign) BOOL isSticky;
 
 @end
 
@@ -135,8 +162,10 @@ typedef enum : NSUInteger {
 {
     if (self = [super initWithRef:ref type:type styles:styles attributes:attributes events:events weexInstance:weexInstance]) {
         [self _fillPadding];
-        
-        if ([type isEqualToString:@"waterfall"] || (attributes[@"layout"] && [attributes[@"layout"] isEqualToString:@"multi-column"])) {
+        self.isSticky = NO;
+
+        if (([type isEqualToString:@"waterfall"] ||
+             [type isEqualToString:@"linkage-list"]) || (attributes[@"layout"] && [attributes[@"layout"] isEqualToString:@"multi-column"])) {
             // TODO: abstraction
             _layoutType = WXRecyclerLayoutTypeMultiColumn;
             CGFloat scaleFactor = weexInstance.pixelScaleFactor;
@@ -149,6 +178,9 @@ typedef enum : NSUInteger {
             }
             if (attributes[@"rightGap"]) {
                 layout.rightGap = [WXConvert WXPixelType:attributes[@"rightGap"] scaleFactor:scaleFactor];
+            }
+            if (attributes[@"stickyOffset"]) {
+                layout.stickyOffset = [WXConvert WXPixelType:attributes[@"stickyOffset"] scaleFactor:scaleFactor];
             }
             layout.columnGap = [self _floatValueForColumnGap:([WXConvert WXLength:attributes[@"columnGap"] isFloat:YES scaleFactor:scaleFactor] ? : [WXLength lengthWithFloat:0.0 type:WXLengthTypeNormal])];
             
@@ -180,6 +212,8 @@ typedef enum : NSUInteger {
 {
     _collectionView.delegate = nil;
     _collectionView.dataSource = nil;
+    _collectionView.wx_subScrollView = nil;
+    _collectionView.wx_mainScrollView = nil;
     if ([_collectionViewlayout isKindOfClass:[WXMultiColumnLayout class]]) {
         WXMultiColumnLayout* wxLayout = (WXMultiColumnLayout *)_collectionViewlayout;
         wxLayout.weak_collectionView = nil;
@@ -198,6 +232,8 @@ typedef enum : NSUInteger {
     [super viewDidLoad];
     
     _collectionView = (UICollectionView *)self.view;
+    _collectionView.wx_isSuper = self.isSuper;
+    _collectionView.wx_isChild = self.isChild;
     _collectionView.allowsSelection = NO;
     _collectionView.allowsMultipleSelection = NO;
     _collectionView.dataSource = self;
@@ -309,6 +345,23 @@ typedef enum : NSUInteger {
 - (void)adjustSticky
 {
     // Do Nothing, sticky is adjusted by layout
+}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    [super scrollViewDidScroll:scrollView];
+    if (scrollView.wx_isSuper && [scrollView.wx_headerOffset floatValue] > 0) {
+        if (scrollView.contentOffset.y >= [scrollView.wx_headerOffset integerValue]) {
+            if (!self.isSticky) {
+                [self fireEvent:@"sticky" params:@{@"isSticky" : @"1"}];
+                self.isSticky = YES;
+            }
+        } else {
+            if (self.isSticky) {
+                [self fireEvent:@"sticky" params:@{@"isSticky" : @"0"}];
+                self.isSticky = NO;
+            }
+        }
+    }
 }
 
 #pragma mark - Private Subclass Methods

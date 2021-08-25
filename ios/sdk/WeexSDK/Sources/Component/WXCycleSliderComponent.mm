@@ -410,6 +410,15 @@ typedef NS_ENUM(NSInteger, Direction) {
 
 @implementation WXCycleSliderComponent
 
+
+WX_EXPORT_METHOD(@selector(setPageIndex:))
+
+- (void)setPageIndex:(NSInteger)index {
+    _index = index;
+    self.currentIndex = index;
+    self.recycleSliderView.currentIndex = index;
+}
+
 - (void) dealloc
 {
     [self _stopAutoPlayTimer];

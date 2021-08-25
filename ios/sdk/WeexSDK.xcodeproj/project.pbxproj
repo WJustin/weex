@@ -37,6 +37,10 @@
 		1C1A2BED1D91172800539AA1 /* WXConvertTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1C1A2BEC1D91172800539AA1 /* WXConvertTests.m */; };
 		1D3000F11D40B9AC004F3B4F /* WXClipboardModule.h in Headers */ = {isa = PBXBuildFile; fileRef = 1D3000EF1D40B9AB004F3B4F /* WXClipboardModule.h */; };
 		1D3000F21D40B9AC004F3B4F /* WXClipboardModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 1D3000F01D40B9AB004F3B4F /* WXClipboardModule.m */; };
+		229705EE26D5E30A0049C75A /* UIScrollView+WXExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 229705EC26D5E3090049C75A /* UIScrollView+WXExtension.m */; };
+		229705EF26D5E30A0049C75A /* UIScrollView+WXExtension.m in Sources */ = {isa = PBXBuildFile; fileRef = 229705EC26D5E3090049C75A /* UIScrollView+WXExtension.m */; };
+		229705F026D5E30A0049C75A /* UIScrollView+WXExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 229705ED26D5E30A0049C75A /* UIScrollView+WXExtension.h */; };
+		229705F126D5E30A0049C75A /* UIScrollView+WXExtension.h in Headers */ = {isa = PBXBuildFile; fileRef = 229705ED26D5E30A0049C75A /* UIScrollView+WXExtension.h */; };
 		2A1F57B71C75C6A600B58017 /* WXTextInputComponent.h in Headers */ = {isa = PBXBuildFile; fileRef = 2A1F57B51C75C6A600B58017 /* WXTextInputComponent.h */; };
 		2A1F57B81C75C6A600B58017 /* WXTextInputComponent.m in Sources */ = {isa = PBXBuildFile; fileRef = 2A1F57B61C75C6A600B58017 /* WXTextInputComponent.m */; };
 		2A42AF881C23B33E00818EA6 /* WeexSDK_MTL.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 2A42AF871C23B33E00818EA6 /* WeexSDK_MTL.h */; };
@@ -964,6 +968,8 @@
 		1C1A2BEC1D91172800539AA1 /* WXConvertTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WXConvertTests.m; sourceTree = "<group>"; };
 		1D3000EF1D40B9AB004F3B4F /* WXClipboardModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WXClipboardModule.h; sourceTree = "<group>"; };
 		1D3000F01D40B9AB004F3B4F /* WXClipboardModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WXClipboardModule.m; sourceTree = "<group>"; };
+		229705EC26D5E3090049C75A /* UIScrollView+WXExtension.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIScrollView+WXExtension.m"; sourceTree = "<group>"; };
+		229705ED26D5E30A0049C75A /* UIScrollView+WXExtension.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIScrollView+WXExtension.h"; sourceTree = "<group>"; };
 		2A1F57B51C75C6A600B58017 /* WXTextInputComponent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WXTextInputComponent.h; sourceTree = "<group>"; };
 		2A1F57B61C75C6A600B58017 /* WXTextInputComponent.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WXTextInputComponent.m; sourceTree = "<group>"; };
 		2A42AF851C23B33E00818EA6 /* libWeexSDK_MTL.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libWeexSDK_MTL.a; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1585,6 +1591,8 @@
 				747A787B1D1BAAC900DED9D0 /* WXComponent+ViewManagement.mm */,
 				74B8BEFC1DC47B72004A6027 /* WXRootView.h */,
 				74B8BEFD1DC47B72004A6027 /* WXRootView.m */,
+				229705ED26D5E30A0049C75A /* UIScrollView+WXExtension.h */,
+				229705EC26D5E3090049C75A /* UIScrollView+WXExtension.m */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -2514,6 +2522,7 @@
 				773CB1DA227F0C92005C758A /* JsonPage.h in Headers */,
 				74CFDD3D1F459400007A1A66 /* WXRecycleListDataManager.h in Headers */,
 				77D161201C02DDB40010B15B /* WXSDKEngine.h in Headers */,
+				229705F026D5E30A0049C75A /* UIScrollView+WXExtension.h in Headers */,
 				745ED2DA1C5F2C7E002DB5A8 /* WXView.h in Headers */,
 				B8F3323C2141A4C600701BA0 /* string_util.h in Headers */,
 				17B122252090AAB000387E33 /* WXSDKError.h in Headers */,
@@ -2771,6 +2780,7 @@
 				DCA445B21EFA576D00D0CFA8 /* WXListComponent.h in Headers */,
 				DCA445AD1EFA575100D0CFA8 /* WXNavigationProtocol.h in Headers */,
 				DCA445B01EFA576200D0CFA8 /* WXModalUIModule.h in Headers */,
+				229705F126D5E30A0049C75A /* UIScrollView+WXExtension.h in Headers */,
 				DCA445A61EFA571E00D0CFA8 /* WXSDKEngine.h in Headers */,
 				DCA445AA1EFA573900D0CFA8 /* WXResourceRequest.h in Headers */,
 				DCA445C61EFA57EE00D0CFA8 /* NSObject+WXSwizzle.h in Headers */,
@@ -3239,6 +3249,7 @@
 				33CE19102153443000CF9670 /* WXJSFrameworkLoadDefaultImpl.m in Sources */,
 				B8D66C7321255730003960BD /* render_list.cpp in Sources */,
 				740451EB1E14BB26004157CB /* WXServiceFactory.m in Sources */,
+				229705EE26D5E30A0049C75A /* UIScrollView+WXExtension.m in Sources */,
 				980341F323B36830000533A6 /* eagle_bridge_ext.cpp in Sources */,
 				B8D66C6521255730003960BD /* render_mask.cpp in Sources */,
 				77E659DB1C07F594008B8775 /* WXDomModule.m in Sources */,
@@ -3403,6 +3414,7 @@
 				453F376E219A789A00A03F1D /* default_request_handler.mm in Sources */,
 				453F376A219A784F00A03F1D /* http_module.cc in Sources */,
 				4532670D213FCFB400DAA620 /* WXDisplayLinkManager.m in Sources */,
+				229705EF26D5E30A0049C75A /* UIScrollView+WXExtension.m in Sources */,
 				B863DF332107313400EA887D /* WXBridgeContext.m in Sources */,
 				B82A159A20F857450098A509 /* WXWebSocketLoader.m in Sources */,
 				B82A159920F857200098A509 /* WXSDKError.m in Sources */,
