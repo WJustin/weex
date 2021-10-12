@@ -67,6 +67,11 @@ typedef NS_ENUM(NSInteger, Direction) {
 
 @implementation WXRecycleSliderView
 
+- (void)setForbidSlideAnimation:(BOOL)forbidSlideAnimation {
+    _forbidSlideAnimation = forbidSlideAnimation;
+    self.scrollView.bounces = !forbidSlideAnimation;
+}
+
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
@@ -757,6 +762,17 @@ WX_EXPORT_METHOD(@selector(setPageIndex:))
 @end
 
 @implementation WXRecycleSliderScrollView
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
+shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+    if (self.contentOffset.x <= 0) {
+        if ([otherGestureRecognizer.delegate isKindOfClass:NSClassFromString(@"_FDFullscreenPopGestureRecognizerDelegate")]) {
+            return YES;
+        }
+    }
+    return NO;
+}
+
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
 {
     WXRecycleSliderView *view = (WXRecycleSliderView *)self.delegate;
