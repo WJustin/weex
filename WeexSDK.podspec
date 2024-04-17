@@ -4,7 +4,7 @@ Pod::Spec.new do |s|
 
   s.name         = "WeexSDK"
 
-  s.version      = "0.30.4"
+  s.version      = "0.30.5"
 
   s.summary      = "WeexSDK Source."
 
@@ -72,6 +72,7 @@ Pod::Spec.new do |s|
                           'ios/sdk/WeexSDK/Sources/Handler/WXUnicornEventListenerHandler.h',
                           'ios/sdk/WeexSDK/Sources/View/WXView.h',
                           'ios/sdk/WeexSDK/Sources/View/WXErrorView.h',
+                          'ios/sdk/WeexSDK/Sources/View/UIScrollView+WXExtension.h',
                           'ios/sdk/WeexSDK/Sources/Protocol/*.h',
                           'ios/sdk/WeexSDK/Sources/Plugin/WXEaglePluginManager.h',
                           'ios/sdk/WeexSDK/Sources/Plugin/WXEaglePlugin.h',
